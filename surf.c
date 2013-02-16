@@ -6,9 +6,11 @@
 #include <X11/X.h>
 #include <X11/Xatom.h>
 #include <gtk/gtk.h>
+#include <gtk/gtkx.h>
 #include <gdk/gdkx.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
+#include <gdk/gdkkeysyms-compat.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -79,7 +81,7 @@ G_DEFINE_TYPE(CookieJar, cookiejar, SOUP_TYPE_COOKIE_JAR_TEXT)
 static Display *dpy;
 static Atom atoms[AtomLast];
 static Client *clients = NULL;
-static GdkNativeWindow embed = 0;
+static Window embed = 0;
 static gboolean showxid = FALSE;
 static char winid[64];
 static gboolean usingproxy = 0;
@@ -115,7 +117,7 @@ static void destroywin(GtkWidget* w, Client *c);
 static void die(const char *errstr, ...);
 static void drawindicator(Client *c);
 static void eval(Client *c, const Arg *arg);
-static gboolean exposeindicator(GtkWidget *w, GdkEventExpose *e, Client *c);
+static gboolean exposeindicator(GtkWidget *w, cairo_t* cr, Client *c);
 static void find(Client *c, const Arg *arg);
 static void fullscreen(Client *c, const Arg *arg);
 static const char *getatom(Client *c, int a);
@@ -408,13 +410,16 @@ drawindicator(Client *c) {
 	const char *uri;
 	char *colorname;
 	GtkWidget *w;
-	GdkGC *gc;
-	GdkColor fg;
+	GdkRGBA color;
+	GtkAllocation alloc;
+	cairo_t *cr;
 
 	uri = geturi(c);
 	w = c->indicator;
-	width = c->progress * w->allocation.width / 100;
-	gc = gdk_gc_new(w->window);
+	gtk_widget_get_allocation(w, &alloc);
+	width = c->progress * alloc.width / 100;
+	cr = gdk_cairo_create(gtk_widget_get_window(w));
+
 	if(strstr(uri, "https://") == uri) {
 		if(usingproxy) {
 			colorname = c->sslfailed? progress_proxy_untrust :
@@ -431,18 +436,23 @@ drawindicator(Client *c) {
 		}
 	}
 
-	gdk_color_parse(colorname, &fg);
-	gdk_gc_set_rgb_fg_color(gc, &fg);
-	gdk_draw_rectangle(w->window,
-			w->style->bg_gc[GTK_WIDGET_STATE(w)],
-			TRUE, 0, 0, w->allocation.width, w->allocation.height);
-	gdk_draw_rectangle(w->window, gc, TRUE, 0, 0, width,
-			w->allocation.height);
-	g_object_unref(gc);
+	// background
+	gdk_rgba_parse(&color, progress_background);
+	gdk_cairo_set_source_rgba(cr, &color);
+	cairo_rectangle(cr, 0, 0, alloc.width, alloc.height);
+	cairo_fill(cr);
+
+	// foreground
+	gdk_rgba_parse(&color, colorname);
+	gdk_cairo_set_source_rgba(cr, &color);
+	cairo_rectangle(cr, 0, 0, width, alloc.height);
+	cairo_fill(cr);
+
+	cairo_destroy(cr);
 }
 
 static gboolean
-exposeindicator(GtkWidget *w, GdkEventExpose *e, Client *c) {
+exposeindicator(GtkWidget *w, cairo_t* cr, Client *c) {
 	drawindicator(c);
 	return TRUE;
 }
@@ -474,7 +484,8 @@ getatom(Client *c, int a) {
 	unsigned long ldummy;
 	unsigned char *p = NULL;
 
-	XGetWindowProperty(dpy, GDK_WINDOW_XID(GTK_WIDGET(c->win)->window),
+	XGetWindowProperty(dpy, GDK_WINDOW_XID(gtk_widget_get_window(
+			GTK_WIDGET(c->win))),
 			atoms[a], 0L, BUFSIZ, False, XA_STRING,
 			&adummy, &idummy, &ldummy, &ldummy, &p);
 	if(p)
@@ -689,10 +700,10 @@ newclient(void) {
 			G_CALLBACK(keypress), c);
 
 	/* Pane */
-	c->pane = gtk_vpaned_new();
+	c->pane = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
 
 	/* VBox */
-	c->vbox = gtk_vbox_new(FALSE, 0);
+	c->vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_paned_pack1(GTK_PANED(c->pane), c->vbox, TRUE, TRUE);
 
 	/* Scrolled Window */
@@ -742,7 +753,7 @@ newclient(void) {
 	/* Indicator */
 	c->indicator = gtk_drawing_area_new();
 	gtk_widget_set_size_request(c->indicator, 0, indicator_thickness);
-	g_signal_connect (G_OBJECT (c->indicator), "expose_event",
+	g_signal_connect (G_OBJECT (c->indicator), "draw",
 			G_CALLBACK (exposeindicator), c);
 
 	/* Arranging */
@@ -764,8 +775,8 @@ newclient(void) {
 	gtk_widget_show(c->win);
 	gtk_window_set_geometry_hints(GTK_WINDOW(c->win), NULL, &hints,
 			GDK_HINT_MIN_SIZE);
-	gdk_window_set_events(GTK_WIDGET(c->win)->window, GDK_ALL_EVENTS_MASK);
-	gdk_window_add_filter(GTK_WIDGET(c->win)->window, processx, c);
+	gdk_window_set_events(gtk_widget_get_window(GTK_WIDGET(c->win)), GDK_ALL_EVENTS_MASK);
+	gdk_window_add_filter(gtk_widget_get_window(GTK_WIDGET(c->win)), processx, c);
 	webkit_web_view_set_full_content_zoom(c->view, TRUE);
 
 	frame = webkit_web_view_get_main_frame(c->view);
@@ -815,7 +826,7 @@ newclient(void) {
 	if(showxid) {
 		gdk_display_sync(gtk_widget_get_display(c->win));
 		printf("%u\n",
-			(guint)GDK_WINDOW_XID(GTK_WIDGET(c->win)->window));
+			(guint)GDK_WINDOW_XID(gtk_widget_get_window(GTK_WIDGET(c->win))));
 		fflush(NULL);
                 if (fclose(stdout) != 0) {
 			die("Error closing stdout");
@@ -982,7 +993,8 @@ scroll(GtkAdjustment *a, const Arg *arg) {
 static void
 setatom(Client *c, int a, const char *v) {
 	XSync(dpy, False);
-	XChangeProperty(dpy, GDK_WINDOW_XID(GTK_WIDGET(c->win)->window),
+	XChangeProperty(dpy, GDK_WINDOW_XID(gtk_widget_get_window(
+			GTK_WIDGET(c->win))),
 			atoms[a], XA_STRING, 8, PropModeReplace,
 			(unsigned char *)v, strlen(v) + 1);
 }
@@ -998,7 +1010,7 @@ setup(void) {
 	sigchld(0);
 	gtk_init(NULL, NULL);
 
-	dpy = GDK_DISPLAY();
+	dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
 
 	/* atoms */
 	atoms[AtomFind] = XInternAtom(dpy, "_SURF_FIND", False);
@@ -1127,12 +1139,12 @@ update(Client *c) {
 	if(c->linkhover) {
 		t = g_strdup_printf("%s| %s", togglestat, c->linkhover);
 	} else if(c->progress != 100) {
-		drawindicator(c);
 		gtk_widget_show(c->indicator);
+		drawindicator(c);
 		t = g_strdup_printf("[%i%%] %s| %s", c->progress, togglestat,
 				c->title);
 	} else {
-		gtk_widget_hide_all(c->indicator);
+		gtk_widget_hide(c->indicator);
 		t = g_strdup_printf("%s| %s", togglestat, c->title);
 	}
 
@@ -1143,7 +1155,7 @@ update(Client *c) {
 static void
 updatewinid(Client *c) {
 	snprintf(winid, LENGTH(winid), "%u",
-			(int)GDK_WINDOW_XID(GTK_WIDGET(c->win)->window));
+			(int)GDK_WINDOW_XID(gtk_widget_get_window(GTK_WIDGET(c->win))));
 }
 
 static void
