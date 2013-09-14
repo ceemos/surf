@@ -117,6 +117,8 @@ static void beforerequest(WebKitWebView *w, WebKitWebFrame *f,
 		WebKitNetworkResponse *resp, Client *c);
 static char *buildpath(const char *path);
 static gboolean buttonrelease(WebKitWebView *web, GdkEventButton *e, Client *c);
+static gboolean buttonpress(WebKitWebView *web, GdkEventButton *e,
+		Client* c);
 static void cleanup(void);
 static void clipboard(Client *c, const Arg *arg);
 
@@ -300,7 +302,6 @@ buttonrelease(WebKitWebView *web, GdkEventButton *e, Client *c) {
 			e);
 	Arg arg;
 	unsigned int i;
-
 	g_object_get(result, "context", &context, NULL);
 	g_object_get(result, "link-uri", &arg.v, NULL);
 	for(i = 0; i < LENGTH(buttons); i++) {
@@ -310,6 +311,22 @@ buttonrelease(WebKitWebView *web, GdkEventButton *e, Client *c) {
 			return true;
 		}
 	}
+	return false;
+}
+
+static gboolean
+buttonpress(WebKitWebView *web, GdkEventButton *e, Client *c) {
+	Arg a;
+	if(e->button == 8) {
+		a.i = -1;
+		navigate(c, &a);
+		return true;
+	}
+	if(e->button == 9) {
+		a.i = 1;
+		navigate(c, &a);
+		return true;
+	}	
 	return false;
 }
 
@@ -935,6 +952,8 @@ newclient(void) {
 	g_signal_connect(G_OBJECT(c->view),
 			"context-menu",
 			G_CALLBACK(contextmenu), c);
+			"button-press-event",
+			G_CALLBACK(buttonpress), c);
 	g_signal_connect(G_OBJECT(c->view),
 			"resource-request-starting",
 			G_CALLBACK(beforerequest), c);
@@ -1095,10 +1114,11 @@ newwindow(Client *c, const Arg *arg, gboolean noembed) {
 		cmd[i++] = "-p";
 	if(!enablescripts)
 		cmd[i++] = "-s";
-	if(showxid)
-		cmd[i++] = "-x";
 	if(enablediskcache)
 		cmd[i++] = "-D";
+	/* This seems to make the new instance crash */
+	/*if(showxid)
+		cmd[i++] = "-x";*/
 	cmd[i++] = "-c";
 	cmd[i++] = cookiefile;
 	cmd[i++] = "--";
