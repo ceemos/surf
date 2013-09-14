@@ -88,6 +88,8 @@ static void beforerequest(WebKitWebView *w, WebKitWebFrame *f,
 static char *buildpath(const char *path);
 static gboolean buttonrelease(WebKitWebView *web, GdkEventButton *e,
 		GList *gl);
+static gboolean buttonpress(WebKitWebView *web, GdkEventButton *e,
+		Client* c);
 static void cleanup(void);
 static void clipboard(Client *c, const Arg *arg);
 
@@ -233,12 +235,12 @@ buildpath(const char *path) {
 }
 
 static gboolean
-buttonrelease(WebKitWebView *web, GdkEventButton *e, GList *gl) {
+buttonrelease(WebKitWebView *web, GdkEventButton *e, GList *gl) { // gl seems useless and broken?
 	WebKitHitTestResultContext context;
 	WebKitHitTestResult *result = webkit_web_view_get_hit_test_result(web,
 			e);
 	Arg arg;
-
+	
 	g_object_get(result, "context", &context, NULL);
 	if(context & WEBKIT_HIT_TEST_RESULT_CONTEXT_LINK) {
 		if(e->button == 2) {
@@ -247,6 +249,22 @@ buttonrelease(WebKitWebView *web, GdkEventButton *e, GList *gl) {
 			return true;
 		}
 	}
+	return false;
+}
+
+static gboolean
+buttonpress(WebKitWebView *web, GdkEventButton *e, Client *c) {
+	Arg a;
+	if(e->button == 8) {
+		a.i = -1;
+		navigate(c, &a);
+		return true;
+	}
+	if(e->button == 9) {
+		a.i = 1;
+		navigate(c, &a);
+		return true;
+	}	
 	return false;
 }
 
@@ -737,6 +755,9 @@ newclient(void) {
 			"button-release-event",
 			G_CALLBACK(buttonrelease), c);
 	g_signal_connect(G_OBJECT(c->view),
+			"button-press-event",
+			G_CALLBACK(buttonpress), c);
+	g_signal_connect(G_OBJECT(c->view),
 			"populate-popup",
 			G_CALLBACK(populatepopup), c);
 	g_signal_connect(G_OBJECT(c->view),
@@ -878,8 +899,9 @@ newwindow(Client *c, const Arg *arg, gboolean noembed) {
 		cmd[i++] = "-p";
 	if(!enablescripts)
 		cmd[i++] = "-s";
-	if(showxid)
-		cmd[i++] = "-x";
+	/* This seems to make the new instance crash */
+	/*if(showxid)
+		cmd[i++] = "-x";*/
 	cmd[i++] = "-c";
 	cmd[i++] = cookiefile;
 	cmd[i++] = "--";
