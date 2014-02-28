@@ -1,0 +1,3 @@
+#!/bin/sh
+exec > /tmp/fb.out 2> /tmp/fb.err
+surf -c ~/.surf/fb.cookie http://www.facebook.com
