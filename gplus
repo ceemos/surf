@@ -1,0 +1,2 @@
+#!/bin/sh
+exec surf -c ~/.surf/gplus.cookie http://plus.google.com
