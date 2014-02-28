@@ -1,0 +1,25 @@
+#!/bin/sh
+if [ -z "$TERM" ]; then
+  st -e "$0" "$@"
+  exit $?
+fi
+cd ~/Downloads
+for url; do true; done
+#filename=$(curl -sI  $url | grep -o -E 'filename=.*$' | sed -e 's/filename=//')
+#[ -z "$filename" ] && filename=$(basename "$url")
+
+#curl  -o $filename -lL -J -O "$@"
+if [[ ! -z $http_proxy ]]; then
+	proxy="--proxy $http_proxy"
+fi
+LC_ALL=C curl $proxy -lLJOk "$@" 2>&1 | tee /tmp/curl.$$
+#LC_ALL=C wget "$@" 2>&1 | tee /tmp/curl.$$
+res=$?
+
+filename=$(sed -n -e "s/[^']*'\(.*\)'[^']*/\1/p" /tmp/curl.$$)
+#filename=$(sed -n -e "s/to: '\([^']*\)'/\1/p" /tmp/curl.$$)
+[ -z "$filename" ] && filename=$(basename "$url")
+echo "Filename: $filename"
+[[ "$filename" = *.pdf* ]] && e "$filename" &
+sleep 3
+[ $res == 0 ] || read
