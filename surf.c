@@ -1018,6 +1018,10 @@ newclient(void) {
 			NULL);
 	g_object_set(G_OBJECT(settings), "enable-scripts", enablescripts,
 			NULL);
+	g_object_set(G_OBJECT(settings), "enable-webgl", enablewebgl,
+			NULL);
+	g_object_set(G_OBJECT(settings), "enable-webaudio", enablewebaudio,
+			NULL);
 	g_object_set(G_OBJECT(settings), "enable-spatial-navigation",
 			enablespatialbrowsing, NULL);
 	g_object_set(G_OBJECT(settings), "enable-developer-extras",
@@ -1035,7 +1039,7 @@ newclient(void) {
 	 * It is equivalent to firefox's "layout.css.devPixelsPerPx" setting.
 	 */
 	if(zoomto96dpi) {
-		screen = gdk_window_get_screen(GTK_WIDGET(c->win)->window);
+		screen = gdk_window_get_screen(gtk_widget_get_window(GTK_WIDGET(c->win)));
 		dpi = gdk_screen_get_resolution(screen);
 		if(dpi != -1) {
 			g_object_set(G_OBJECT(settings), "enforce-96-dpi", true,
