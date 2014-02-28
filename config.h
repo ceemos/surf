@@ -4,13 +4,21 @@ static char *useragent      = "Mozilla/5.0 (X11; U; Unix; en-US) "
 	"Safari/537.15 Surf/"VERSION;
 static char *stylefile      = "~/.surf/style.css";
 static char *scriptfile     = "~/.surf/script.js";
+
+/* Soup default features */
 static char *cookiefile     = "~/.surf/cookies.txt";
-static time_t sessiontime   = 3600;
+static char *cookiepolicies = "Aa@"; /* A: accept all; a: accept nothing,
+                                        @: accept no third party */
 static char *cafile         = "/etc/ssl/certs/ca-certificates.crt";
 static char *strictssl      = FALSE; /* Refuse untrusted SSL connections */
+static time_t sessiontime   = 3600;
+
 static Bool kioskmode	    = FALSE; /* Ignore shortcuts */
 static Bool showindicators  = TRUE;  /* Show indicators in window title */
 static Bool zoomto96dpi     = TRUE;  /* Zoom pages to always emulate 96dpi */
+static Bool runinfullscreen = FALSE; /* Run in fullscreen mode by default */
+
+static gfloat zoomlevel = 1.0;       /* Default zoom level */
 
 static guint defaultfontsize = 12;
 
