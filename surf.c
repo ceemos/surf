@@ -255,6 +255,7 @@ buttonrelease(WebKitWebView *web, GdkEventButton *e, GList *gl) { // gl seems us
 		if(e->button == 2 ||
 				(e->button == 1 && CLEANMASK(e->state) == CLEANMASK(MODKEY))) {
 			g_object_get(result, "link-uri", &arg.v, NULL);
+			printf("--- Open new Window ----\n");
 			newwindow(NULL, &arg, e->state & GDK_CONTROL_MASK);
 			return true;
 		}
@@ -575,7 +576,7 @@ inspector(Client *c, const Arg *arg) {
 
 static WebKitWebView *
 inspector_new(WebKitWebInspector *i, WebKitWebView *v, Client *c) {
-	return WEBKIT_WEB_VIEW(webkit_web_view_new());
+	return WEBKIT_WEB_VIEW(webkit_web_view_new ());
 }
 
 static gboolean
@@ -586,8 +587,19 @@ inspector_show(WebKitWebInspector *i, Client *c) {
 		return false;
 
 	w = webkit_web_inspector_get_web_view(i);
-	gtk_paned_pack2(GTK_PANED(c->pane), GTK_WIDGET(w), TRUE, TRUE);
-	gtk_widget_show(GTK_WIDGET(w));
+	
+	/* Create the widgets */
+	GtkWidget *main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+	GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);;
+
+	/* Place the WebKitWebView in the GtkScrolledWindow */
+	gtk_container_add (GTK_CONTAINER (scrolled_window), w);
+	gtk_container_add (GTK_CONTAINER (main_window), scrolled_window);
+
+	/* Show the result */
+	gtk_window_set_default_size (GTK_WINDOW (main_window), 800, 600);
+	gtk_widget_show_all (main_window);
+	
 	c->isinspecting = true;
 
 	return true;
@@ -974,6 +986,9 @@ newwindow(Client *c, const Arg *arg, gboolean noembed) {
 	if(uri)
 		cmd[i++] = uri;
 	cmd[i++] = NULL;
+	for(int k = 0; cmd[k]; k++)
+		printf(" %s", cmd[k]);
+	printf("\n");
 	spawn(NULL, &a);
 }
 
