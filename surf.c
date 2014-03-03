@@ -315,7 +315,6 @@ buttonrelease(WebKitWebView *web, GdkEventButton *e, Client *c) {
 		if(e->button == 2 ||
 				(e->button == 1 && CLEANMASK(e->state) == CLEANMASK(MODKEY))) {
 			g_object_get(result, "link-uri", &arg.v, NULL);
-			printf("--- Open new Window ----\n");
 			newwindow(NULL, &arg, e->state & GDK_CONTROL_MASK);
 			return true;
 		}
@@ -718,7 +717,7 @@ inspector(Client *c, const Arg *arg) {
 
 static WebKitWebView *
 inspector_new(WebKitWebInspector *i, WebKitWebView *v, Client *c) {
-	return WEBKIT_WEB_VIEW(webkit_web_view_new ());
+	return WEBKIT_WEB_VIEW(webkit_web_view_new());
 }
 
 static gboolean
@@ -729,19 +728,10 @@ inspector_show(WebKitWebInspector *i, Client *c) {
 		return false;
 
 	w = webkit_web_inspector_get_web_view(i);
-	
-	/* Create the widgets */
-	GtkWidget *main_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);;
-
-	/* Place the WebKitWebView in the GtkScrolledWindow */
+	GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
 	gtk_container_add (GTK_CONTAINER (scrolled_window), w);
-	gtk_container_add (GTK_CONTAINER (main_window), scrolled_window);
-
-	/* Show the result */
-	gtk_window_set_default_size (GTK_WINDOW (main_window), 800, 600);
-	gtk_widget_show_all (main_window);
-	
+	gtk_paned_pack2(GTK_PANED(c->pane), GTK_WIDGET(scrolled_window), TRUE, TRUE);
+	gtk_widget_show_all(GTK_WIDGET(scrolled_window));
 	c->isinspecting = true;
 
 	return true;
@@ -749,14 +739,18 @@ inspector_show(WebKitWebInspector *i, Client *c) {
 
 static gboolean
 inspector_close(WebKitWebInspector *i, Client *c) {
-	GtkWidget *w;
+	GtkWidget *w, *scrolled;
 
 	if(!c->isinspecting)
 		return false;
 
 	w = GTK_WIDGET(webkit_web_inspector_get_web_view(i));
+	scrolled = gtk_paned_get_child2(GTK_PANED(c->pane));
+	
 	gtk_widget_hide(w);
+	gtk_widget_hide(scrolled);
 	gtk_widget_destroy(w);
+	gtk_widget_destroy(scrolled);
 	c->isinspecting = false;
 
 	return true;
@@ -1150,9 +1144,6 @@ newwindow(Client *c, const Arg *arg, gboolean noembed) {
 	if(uri)
 		cmd[i++] = uri;
 	cmd[i++] = NULL;
-	for(int k = 0; cmd[k]; k++)
-		printf(" %s", cmd[k]);
-	printf("\n");
 	spawn(NULL, &a);
 }
 
