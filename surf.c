@@ -1511,7 +1511,7 @@ togglescrollbars(Client *c, const Arg *arg) {
 
 	if(vspolicy == GTK_POLICY_AUTOMATIC) {
 		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(c->scroll),
-				GTK_POLICY_NEVER, GTK_POLICY_NEVER);
+				GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
 	} else {
 		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(c->scroll),
 				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
