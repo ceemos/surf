@@ -1028,6 +1028,10 @@ newclient(void) {
 	}
 	g_object_set(G_OBJECT(settings), "auto-load-images", loadimages,
 			NULL);
+	g_object_set(G_OBJECT(settings), "enable-page-cache", TRUE,
+			NULL);
+	g_object_set(G_OBJECT(settings), "enable-frame-flattening", enableframeflattening,
+			NULL);
 	g_object_set(G_OBJECT(settings), "enable-plugins", enableplugins,
 			NULL);
 	g_object_set(G_OBJECT(settings), "enable-scripts", enablescripts,
@@ -1035,6 +1039,8 @@ newclient(void) {
 	g_object_set(G_OBJECT(settings), "enable-webgl", enablewebgl,
 			NULL);
 	g_object_set(G_OBJECT(settings), "enable-webaudio", enablewebaudio,
+			NULL);
+	g_object_set(G_OBJECT(settings), "enable-fullscreen", enablefullscreenapi,
 			NULL);
 	g_object_set(G_OBJECT(settings), "enable-spatial-navigation",
 			enablespatialbrowsing, NULL);
