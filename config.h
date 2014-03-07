@@ -25,10 +25,12 @@ static guint defaultfontsize = 12;
 /* Webkit default features */
 static Bool enablescrollbars = TRUE;
 static Bool enablespatialbrowsing = FALSE;
+static Bool enableframeflattening = TRUE;
 static Bool enableplugins = TRUE;
 static Bool enablescripts = TRUE;
 static Bool enablewebgl = TRUE;
 static Bool enablewebaudio = TRUE;
+static Bool enablefullscreenapi = TRUE;
 static Bool enableinspector = TRUE;
 static Bool loadimages = TRUE;
 static Bool hidebackground  = FALSE;
@@ -42,7 +44,7 @@ static Bool allowgeolocation = TRUE;
 	} \
 }
 
-#define SETPROP(p, q) { .v = (char *[]){ "/bin/sh", "-c", "/home/marcel/bin/gosurf $0 $1 $2", p, q, winid, NULL } }
+#define SETPROP(p, q) { .v = (char *[]){ "/bin/sh", "-c", "gosurf $0 $1 $2", p, q, winid, NULL } }
 
 
 /* DOWNLOAD(URI, referer) */
