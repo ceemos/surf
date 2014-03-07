@@ -586,8 +586,10 @@ inspector_show(WebKitWebInspector *i, Client *c) {
 		return false;
 
 	w = webkit_web_inspector_get_web_view(i);
-	gtk_paned_pack2(GTK_PANED(c->pane), GTK_WIDGET(w), TRUE, TRUE);
-	gtk_widget_show(GTK_WIDGET(w));
+	GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+	gtk_container_add (GTK_CONTAINER (scrolled_window), w);
+	gtk_paned_pack2(GTK_PANED(c->pane), GTK_WIDGET(scrolled_window), TRUE, TRUE);
+	gtk_widget_show_all(GTK_WIDGET(scrolled_window));
 	c->isinspecting = true;
 
 	return true;
@@ -595,14 +597,18 @@ inspector_show(WebKitWebInspector *i, Client *c) {
 
 static gboolean
 inspector_close(WebKitWebInspector *i, Client *c) {
-	GtkWidget *w;
+	GtkWidget *w, *scrolled;
 
 	if(!c->isinspecting)
 		return false;
 
 	w = GTK_WIDGET(webkit_web_inspector_get_web_view(i));
+	scrolled = gtk_paned_get_child2(GTK_PANED(c->pane));
+	
 	gtk_widget_hide(w);
+	gtk_widget_hide(scrolled);
 	gtk_widget_destroy(w);
+	gtk_widget_destroy(scrolled);
 	c->isinspecting = false;
 
 	return true;
