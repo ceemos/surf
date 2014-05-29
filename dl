@@ -3,7 +3,10 @@ if [ -z "$TERM" ]; then
   st -e "$0" "$@"
   exit $?
 fi
-cd ~/Downloads
+if [ -z $DLDIR ]; then
+  DLDIR=~/Downloads
+fi
+cd "$DLDIR"
 for url; do true; done
 #filename=$(curl -sI  $url | grep -o -E 'filename=.*$' | sed -e 's/filename=//')
 #[ -z "$filename" ] && filename=$(basename "$url")
@@ -20,6 +23,6 @@ filename=$(sed -n -e "s/[^']*'\(.*\)'[^']*/\1/p" /tmp/curl.$$)
 #filename=$(sed -n -e "s/to: '\([^']*\)'/\1/p" /tmp/curl.$$)
 [ -z "$filename" ] && filename=$(basename "$url")
 echo "Filename: $filename"
-[[ "$filename" = *.pdf* ]] && e "$filename" &
+[[ "$filename" = *.pdf* ]] && nohup e "$filename" &
 sleep 3
 [ $res == 0 ] || read

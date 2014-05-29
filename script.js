@@ -32,15 +32,6 @@
  */
 
 
-function up() {
-    if (window.scrollByLines)
-        window.scrollByLines(-1); // gecko
-    else
-        window.scrollBy(0, -12); // webkit
-}
-
-
-
 // If you don't like default key bindings, customize here. 
 // if you want to use the combination 'Ctrl + b' (for example), use '^b'
 var bindings = {
@@ -51,7 +42,6 @@ var bindings = {
     ',' : function () { window.history.back(); },
     '.' : function () { window.history.forward(); },
     '-' : function () { window.close(); },
-    '+' : function () { window.open("about:blank"); },
 }
 
 function isEditable(element) {
@@ -96,14 +86,6 @@ window.addEventListener("keypress", keypress, false);
 
 // easy links for surf
 // christian hahn <ch radamanthys de>, sep 2010
-
-testcomplete = function() {
-    if(document.readyState=="complete") {
-        run(); return;
-    }
-    window.setTimeout("testcomplete()",200);
-}
-testcomplete();
 
 run=function() {
     // config , any css
@@ -205,3 +187,12 @@ run=function() {
         }
     }
 }
+
+
+testcomplete = function() {
+    if(document.readyState=="complete") {
+        run(); return;
+    }
+    window.setTimeout("testcomplete()",200);
+}
+testcomplete();
