@@ -84,7 +84,7 @@ case "$pid" in
     xprop -id $xid | sed 's/\t/    /g' | $dmenu -fn "$font" -b -l 20
     ;;
 "_SURF_FIND")
-    find="`tac $ffile 2>/dev/null | $dmenu -fn "$font" -b -p find:`"
+    find="`tac $ffile 2>/dev/null | $dmenu -fn "$font" -p find:`"
     s_set_prop _SURF_FIND "$find"
     s_write_f $ffile "$find"
     ;;
@@ -97,7 +97,7 @@ case "$pid" in
     s_set_prop _SURF_GO "$uri"
     ;;
 "_SURF_URI")
-    sel=`tac $bmarks 2> /dev/null | $dmenu -fn "$font" -b -l 5 -p "uri [dgtwuy*]:"`
+    sel=`tac $bmarks 2> /dev/null | $dmenu -fn "$font" -l 5 -p "uri [dgtwuy*]:"`
     [ -z "$sel" ] && exit
     opt=$(echo $sel | cut -d ' ' -f 1)
     arg=$(echo $sel | cut -d ' ' -f 2-)
