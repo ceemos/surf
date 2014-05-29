@@ -15,13 +15,12 @@ GTKLIB = `pkg-config --libs gtk+-3.0 webkitgtk-3.0`
 
 # includes and libs
 INCS = -I. -I/usr/include -I${X11INC} ${GTKINC}
-LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 ${GTKLIB} 
-#-lgthread-2.0 \
-#       -ljavascriptcoregtk-1.0
+
+LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 ${GTKLIB} -lgthread-2.0
 
 # flags
 CPPFLAGS = -DVERSION=\"${VERSION}\" -D_BSD_SOURCE
-CFLAGS = -g3 -std=c99 -pedantic -Wall -Os ${INCS} ${CPPFLAGS}
+CFLAGS = -std=c99 -pedantic -Wall -Os ${INCS} ${CPPFLAGS}
 LDFLAGS = -g ${LIBS}
 
 # Solaris
@@ -29,4 +28,4 @@ LDFLAGS = -g ${LIBS}
 #LDFLAGS = ${LIBS}
 
 # compiler and linker
-CC = clang
+CC = cc

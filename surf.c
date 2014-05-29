@@ -11,7 +11,6 @@
 #include <gdk/gdkx.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
-#include <gdk/gdkkeysyms-compat.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -648,8 +647,7 @@ getatom(Client *c, int a) {
 	unsigned long ldummy;
 	unsigned char *p = NULL;
 
-	XGetWindowProperty(dpy, GDK_WINDOW_XID(gtk_widget_get_window(
-			GTK_WIDGET(c->win))),
+	XGetWindowProperty(dpy, GDK_WINDOW_XID(gtk_widget_get_window(GTK_WIDGET(c->win))),
 			atoms[a], 0L, BUFSIZ, False, XA_STRING,
 			&adummy, &idummy, &ldummy, &ldummy, &p);
 	if(p) {
@@ -880,6 +878,7 @@ newclient(void) {
 	WebKitWebFrame *frame;
 	GdkGeometry hints = { 1, 1 };
 	GdkScreen *screen;
+	GdkWindow *window;
 	gdouble dpi;
 	char *ua;
 
@@ -909,6 +908,10 @@ newclient(void) {
 		 */
 		gtk_window_set_role(GTK_WINDOW(c->win), "Surf");
 	}
+
+	gtk_widget_realize(GTK_WIDGET(c->win));
+	window = gtk_widget_get_window(GTK_WIDGET(c->win));
+
 	gtk_window_set_default_size(GTK_WINDOW(c->win), 800, 600);
 	g_signal_connect(G_OBJECT(c->win),
 			"destroy",
@@ -1012,8 +1015,8 @@ newclient(void) {
 	gtk_widget_show(c->win);
 	gtk_window_set_geometry_hints(GTK_WINDOW(c->win), NULL, &hints,
 			GDK_HINT_MIN_SIZE);
-	gdk_window_set_events(gtk_widget_get_window(GTK_WIDGET(c->win)), GDK_ALL_EVENTS_MASK);
-	gdk_window_add_filter(gtk_widget_get_window(GTK_WIDGET(c->win)), processx, c);
+	gdk_window_set_events(window, GDK_ALL_EVENTS_MASK);
+	gdk_window_add_filter(window, processx, c);
 	webkit_web_view_set_full_content_zoom(c->view, TRUE);
 
 	runscript(frame);
@@ -1030,6 +1033,8 @@ newclient(void) {
 			NULL);
 	g_object_set(G_OBJECT(settings), "enable-page-cache", TRUE,
 			NULL);
+	g_object_set(G_OBJECT(settings), "enable-accelerated-compositing", TRUE,
+			NULL);	
 	g_object_set(G_OBJECT(settings), "enable-frame-flattening", enableframeflattening,
 			NULL);
 	g_object_set(G_OBJECT(settings), "enable-plugins", enableplugins,
@@ -1059,7 +1064,7 @@ newclient(void) {
 	 * It is equivalent to firefox's "layout.css.devPixelsPerPx" setting.
 	 */
 	if(zoomto96dpi) {
-		screen = gdk_window_get_screen(gtk_widget_get_window(GTK_WIDGET(c->win)));
+		screen = gdk_window_get_screen(window);
 		dpi = gdk_screen_get_resolution(screen);
 		if(dpi != -1) {
 			g_object_set(G_OBJECT(settings), "enforce-96-dpi", true,
@@ -1101,7 +1106,7 @@ newclient(void) {
 	if(showxid) {
 		gdk_display_sync(gtk_widget_get_display(c->win));
 		printf("%u\n",
-			(guint)GDK_WINDOW_XID(gtk_widget_get_window(GTK_WIDGET(c->win))));
+			(guint)GDK_WINDOW_XID(window));
 		fflush(NULL);
                 if (fclose(stdout) != 0) {
 			die("Error closing stdout");
@@ -1302,8 +1307,7 @@ scroll(GtkAdjustment *a, const Arg *arg) {
 static void
 setatom(Client *c, int a, const char *v) {
 	XSync(dpy, False);
-	XChangeProperty(dpy, GDK_WINDOW_XID(gtk_widget_get_window(
-			GTK_WIDGET(c->win))),
+	XChangeProperty(dpy, GDK_WINDOW_XID(gtk_widget_get_window(GTK_WIDGET(c->win))),
 			atoms[a], XA_STRING, 8, PropModeReplace,
 			(unsigned char *)v, strlen(v) + 1);
 }
@@ -1321,7 +1325,7 @@ setup(void) {
 	sigchld(0);
 	gtk_init(NULL, NULL);
 
-	dpy = gdk_x11_display_get_xdisplay(gdk_display_get_default());
+	dpy = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
 
 	/* atoms */
 	atoms[AtomFind] = XInternAtom(dpy, "_SURF_FIND", False);
@@ -1517,7 +1521,7 @@ togglescrollbars(Client *c, const Arg *arg) {
 
 	if(vspolicy == GTK_POLICY_AUTOMATIC) {
 		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(c->scroll),
-				GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+				GTK_POLICY_NEVER, GTK_POLICY_NEVER);
 	} else {
 		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(c->scroll),
 				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
