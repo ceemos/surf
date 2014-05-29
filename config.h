@@ -24,7 +24,6 @@ static time_t sessiontime   = 3600;
 /* Webkit default features */
 static Bool enablescrollbars = TRUE;
 static Bool enablespatialbrowsing = FALSE;
-static Bool enableframeflattening = FALSE;
 static Bool enableplugins = TRUE;
 static Bool enablescripts = TRUE;
 static Bool enablewebgl = TRUE;

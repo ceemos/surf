@@ -869,12 +869,6 @@ newclient(void) {
 	g_object_set(G_OBJECT(settings), "user-stylesheet-uri", uri, NULL);
 	g_object_set(G_OBJECT(settings), "auto-load-images", loadimages,
 			NULL);
-	g_object_set(G_OBJECT(settings), "enable-page-cache", TRUE,
-			NULL);
-	g_object_set(G_OBJECT(settings), "enable-accelerated-compositing", TRUE,
-			NULL);	
-	g_object_set(G_OBJECT(settings), "enable-frame-flattening", enableframeflattening,
-			NULL);
 	g_object_set(G_OBJECT(settings), "enable-plugins", enableplugins,
 			NULL);
 	g_object_set(G_OBJECT(settings), "enable-scripts", enablescripts,
