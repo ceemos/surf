@@ -673,7 +673,7 @@ inspector_show(WebKitWebInspector *i, Client *c) {
 
 	w = webkit_web_inspector_get_web_view(i);
 	GtkWidget *scrolled_window = gtk_scrolled_window_new (NULL, NULL);
-	gtk_container_add (GTK_CONTAINER (scrolled_window), w);
+	gtk_container_add (GTK_CONTAINER (scrolled_window), GTK_WIDGET(w));
 	gtk_paned_pack2(GTK_PANED(c->pane), GTK_WIDGET(scrolled_window), TRUE, TRUE);
 	gtk_widget_show_all(GTK_WIDGET(scrolled_window));
 	c->isinspecting = true;
@@ -915,6 +915,7 @@ newclient(void) {
 	g_signal_connect(G_OBJECT(c->view),
 			"context-menu",
 			G_CALLBACK(contextmenu), c);
+	g_signal_connect(G_OBJECT(c->view),
 			"button-press-event",
 			G_CALLBACK(buttonpress), c);
 	g_signal_connect(G_OBJECT(c->view),
