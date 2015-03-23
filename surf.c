@@ -147,7 +147,6 @@ static void destroyclient(Client *c);
 static void destroywin(GtkWidget* w, Client *c);
 static void die(const char *errstr, ...);
 static void eval(Client *c, const Arg *arg);
-static gboolean exposeindicator(GtkWidget *w, cairo_t* cr, Client *c);
 static void find(Client *c, const Arg *arg);
 static void fullscreen(Client *c, const Arg *arg);
 static void geopolicyrequested(WebKitWebView *v, WebKitWebFrame *f,
@@ -558,59 +557,6 @@ die(const char *errstr, ...) {
 }
 
 static void
-drawindicator(Client *c) {
-	gint width;
-	const char *uri;
-	char *colorname;
-	GtkWidget *w;
-	GdkRGBA color;
-	GtkAllocation alloc;
-	cairo_t *cr;
-
-	uri = geturi(c);
-	w = c->indicator;
-	gtk_widget_get_allocation(w, &alloc);
-	width = c->progress * alloc.width / 100;
-	cr = gdk_cairo_create(gtk_widget_get_window(w));
-
-	if(strstr(uri, "https://") == uri) {
-		if(usingproxy) {
-			colorname = c->sslfailed? progress_proxy_untrust :
-				progress_proxy_trust;
-		} else {
-			colorname = c->sslfailed? progress_untrust :
-				progress_trust;
-		}
-	} else {
-		if(usingproxy) {
-			colorname = progress_proxy;
-		} else {
-			colorname = progress;
-		}
-	}
-
-	// background
-	gdk_rgba_parse(&color, progress_background);
-	gdk_cairo_set_source_rgba(cr, &color);
-	cairo_rectangle(cr, 0, 0, alloc.width, alloc.height);
-	cairo_fill(cr);
-
-	// foreground
-	gdk_rgba_parse(&color, colorname);
-	gdk_cairo_set_source_rgba(cr, &color);
-	cairo_rectangle(cr, 0, 0, width, alloc.height);
-	cairo_fill(cr);
-
-	cairo_destroy(cr);
-}
-
-static gboolean
-exposeindicator(GtkWidget *w, cairo_t* cr, Client *c) {
-	drawindicator(c);
-	return TRUE;
-}
-
-static void
 find(Client *c, const Arg *arg) {
 	const char *s;
 
@@ -992,12 +938,6 @@ newclient(void) {
 		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(c->scroll),
 				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	}
-
-	/* Indicator */
-	c->indicator = gtk_drawing_area_new();
-	gtk_widget_set_size_request(c->indicator, 0, indicator_thickness);
-	g_signal_connect (G_OBJECT (c->indicator), "draw",
-			G_CALLBACK (exposeindicator), c);
 
 	/* Arranging */
 	gtk_container_add(GTK_CONTAINER(c->scroll), GTK_WIDGET(c->view));
@@ -1594,12 +1534,9 @@ updatetitle(Client *c) {
 		if(c->linkhover) {
 			t = g_strdup_printf("%s| %s", togglestat, c->linkhover);
 		} else if(c->progress != 100) {
-			gtk_widget_show(c->indicator);
-			drawindicator(c);
 			t = g_strdup_printf("[%i%%] %s| %s", c->progress, togglestat,
 					c->title);
 		} else {
-			gtk_widget_hide(c->indicator);
 			t = g_strdup_printf("%s| %s", togglestat, c->title);
 		}
 		gtk_window_set_title(GTK_WINDOW(c->win), t);
