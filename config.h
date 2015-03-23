@@ -3,7 +3,7 @@ static char *useragent      = "Mozilla/5.0 (X11; U; Unix; en-US) "
 	"AppleWebKit/537.15 (KHTML, like Gecko) Chrome/24.0.1295.0 "
 	"Safari/537.15 Surf/"VERSION;
 static char *scriptfile     = "~/.surf/script.js";
-static char *styledir       = "~/.surf/styles/";
+static char *styledir       = "~/.surf/";
 static char *cachefolder    = "~/.surf/cache/";
 
 static Bool kioskmode       = FALSE; /* Ignore shortcuts */
@@ -69,7 +69,7 @@ static Bool allowgeolocation      = TRUE;
  */
 static SiteStyle styles[] = {
 	/* regexp		file in $styledir */
-	{ ".*",			"default.css" },
+	{ ".*",			"style.css" },
 };
 
 #define MODKEY GDK_CONTROL_MASK
