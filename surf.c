@@ -913,6 +913,9 @@ newclient(void) {
 			"button-release-event",
 			G_CALLBACK(buttonrelease), c);
 	g_signal_connect(G_OBJECT(c->view),
+			"button-press-event",
+			G_CALLBACK(buttonpress), c);
+	g_signal_connect(G_OBJECT(c->view),
 			"context-menu",
 			G_CALLBACK(contextmenu), c);
 	g_signal_connect(G_OBJECT(c->view),
@@ -1080,6 +1083,7 @@ newwindow(Client *c, const Arg *arg, gboolean noembed) {
 		cmd[i++] = "-s";
 	if(enablediskcache)
 		cmd[i++] = "-D";
+
 	/* This seems to make the new instance crash */
 	/*if(showxid)
 		cmd[i++] = "-x";*/

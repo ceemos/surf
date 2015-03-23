@@ -2,6 +2,7 @@
 static char *useragent      = "Mozilla/5.0 (X11; U; Unix; en-US) "
 	"AppleWebKit/537.15 (KHTML, like Gecko) Chrome/24.0.1295.0 "
 	"Safari/537.15 Surf/"VERSION;
+        
 static char *scriptfile     = "~/.surf/script.js";
 static char *styledir       = "~/.surf/";
 static char *cachefolder    = "~/.surf/cache/";
@@ -38,10 +39,7 @@ static Bool loadimages            = TRUE;
 static Bool hidebackground        = FALSE;
 static Bool allowgeolocation      = TRUE;
 
-
 #define SETPROP(p, q) { .v = (char *[]){ "/bin/sh", "-c", "gosurf $0 $1 $2", p, q, winid, NULL } }
-
-
 
 /* DOWNLOAD(URI, referer) */
 #define DOWNLOAD(d, r) { \
@@ -71,6 +69,7 @@ static SiteStyle styles[] = {
 	/* regexp		file in $styledir */
 	{ ".*",			"style.css" },
 };
+
 
 #define MODKEY GDK_CONTROL_MASK
 
@@ -140,3 +139,4 @@ static Button buttons[] = {
     { ClkAny,               0,          8,      navigate,       { .i = -1 } },
     { ClkAny,               0,          9,      navigate,       { .i = +1 } },
 };
+
